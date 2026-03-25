@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import {
@@ -7,11 +7,10 @@ import {
   listTodos,
   updateTodo,
 } from "../lib/todo-api";
-import { TODO_STALE_TIME } from "../lib/query-client";
+import { queryClient, TODO_STALE_TIME } from "../lib/query-client";
 import type { Todo } from "../types/todo";
 
 export default function TodosPage() {
-  const queryClient = useQueryClient();
   const [draftTitle, setDraftTitle] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState("");
