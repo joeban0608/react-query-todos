@@ -33,6 +33,11 @@ export async function listTodos() {
   return request<Todo[]>("/api/todos");
 }
 
+export async function getTodo(id: string) {
+  await sleep(1200);
+  return request<Todo>(`/api/todos/${id}`);
+}
+
 export function createTodo(input: CreateTodoInput) {
   return request<Todo>("/api/todos", {
     method: "POST",
