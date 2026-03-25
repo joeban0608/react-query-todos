@@ -1,5 +1,5 @@
 import type { CreateTodoInput, Todo, UpdateTodoInput } from "../types/todo";
-import { sleep } from "./constants";
+// import { sleep } from "./constants";
 
 interface ApiErrorPayload {
   message?: string;
@@ -29,12 +29,12 @@ async function request<T>(input: RequestInfo, init?: RequestInit): Promise<T> {
 }
 
 export async function listTodos() {
-  await sleep(2000);
+  // await sleep(2000);
   return request<Todo[]>("/api/todos");
 }
 
 export async function getTodo(id: string) {
-  await sleep(1200);
+  // await sleep(1200);
   return request<Todo>(`/api/todos/${id}`);
 }
 
