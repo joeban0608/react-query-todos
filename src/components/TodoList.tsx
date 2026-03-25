@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { listTodos } from "../lib/todo-api";
 
 export default function TodoList() {
