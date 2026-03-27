@@ -75,6 +75,11 @@ function createTodoMiddleware(): Connect.NextHandleFunction {
         return
       }
 
+      if (method === 'GET') {
+        await sendJson(res, 200, todos[index])
+        return
+      }
+
       if (method === 'PATCH') {
         const body = (await readJsonBody(req)) as UpdateTodoInput | null
         const todo = todos[index]
