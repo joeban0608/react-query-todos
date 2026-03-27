@@ -8,13 +8,23 @@ import {
   updateTodo,
 } from "../lib/todo-api";
 import { queryClient, TODO_STALE_TIME } from "../lib/query-client";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
+import { setTodoFilter, type TodoFilter } from "../store/uiSlice";
 import type { Todo } from "../types/todo";
+
+const filterOptions: Array<{ label: string; value: TodoFilter }> = [
+  { label: "All", value: "all" },
+  { label: "Active", value: "active" },
+  { label: "Completed", value: "completed" },
+];
 
 export default function TodosPage() {
   const [draftTitle, setDraftTitle] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState("");
   const [formMessage, setFormMessage] = useState<string | null>(null);
+  const dispatch = useAppDispatch();
+  const todoFilter = useAppSelector((state) => state.ui.todoFilter);
 
   const todosQuery = useQuery({
     queryKey: ["todos"],
@@ -120,6 +130,28 @@ export default function TodosPage() {
   }
 
   const todos = todosQuery.data;
+  const visibleTodos = todos.filter((todo) => {
+    if (todoFilter === "active") {
+      return !todo.completed;
+    }
+
+    if (todoFilter === "completed") {
+      return todo.completed;
+    }
+
+    return true;
+  });
+  const filterLabel =
+    todoFilter === "all"
+      ? "All todos"
+      : todoFilter === "active"
+        ? "Active todos"
+        : "Completed todos";
+  const stats = {
+    all: todos.length,
+    active: todos.filter((todo) => !todo.completed).length,
+    completed: todos.filter((todo) => todo.completed).length,
+  };
 
   return (
     <div className="space-y-8">
@@ -189,14 +221,42 @@ export default function TodosPage() {
       </section>
 
       <section className="rounded-[2rem] border border-slate-200 bg-white/85 p-5 shadow-[0_20px_80px_rgba(20,33,61,0.08)] backdrop-blur sm:p-7">
-        <div className="flex items-center justify-between gap-4 border-b border-slate-200 pb-4">
-          <div>
-            <h2 className="text-2xl font-black tracking-tight text-slate-950">
-              Todos
-            </h2>
-            <p className="text-sm text-slate-500">
-              {todos.length} item{todos.length === 1 ? "" : "s"} stored locally
+        <div className="flex flex-col gap-4 border-b border-slate-200 pb-4">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h2 className="text-2xl font-black tracking-tight text-slate-950">
+                Todos
+              </h2>
+              <p className="text-sm text-slate-500">
+                {visibleTodos.length} item
+                {visibleTodos.length === 1 ? "" : "s"} in {filterLabel.toLowerCase()}
+              </p>
+            </div>
+            <p className="rounded-full bg-amber-50 px-3 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-amber-900">
+              {filterLabel}
             </p>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {filterOptions.map((option) => {
+              const isActive = todoFilter === option.value;
+
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  className={[
+                    "rounded-full px-4 py-2 text-sm font-semibold transition",
+                    isActive
+                      ? "bg-amber-300 text-slate-950"
+                      : "border border-amber-200 bg-white text-slate-700 hover:border-amber-400 hover:text-slate-950",
+                  ].join(" ")}
+                  onClick={() => dispatch(setTodoFilter(option.value))}
+                >
+                  {option.label} ({stats[option.value]})
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -207,9 +267,18 @@ export default function TodosPage() {
               Create one and then click into its detail route to test cache reuse.
             </p>
           </div>
+        ) : visibleTodos.length === 0 ? (
+          <div className="py-16 text-center">
+            <p className="text-lg font-semibold text-slate-700">
+              No todos match the current filter.
+            </p>
+            <p className="mt-2 text-sm text-slate-500">
+              Switch the filter above to inspect a different slice of the same query cache.
+            </p>
+          </div>
         ) : (
           <ul className="mt-5 space-y-4">
-            {todos.map((todo) => {
+            {visibleTodos.map((todo) => {
               const isEditing = editingId === todo.id;
               const isUpdating = updateMutation.isPending && updateMutation.variables?.id === todo.id;
               const isDeleting = deleteMutation.isPending && deleteMutation.variables === todo.id;
